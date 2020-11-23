@@ -1,0 +1,74 @@
+#include "TM4C123.h" 
+#include <string.h>
+
+#define LCD GPIOB
+#define RS 	1
+#define RW	2
+#define EN	4 //E
+
+void LCD_Init(void);
+void delay_ms(int n);
+void delay_us(int n);
+void LCD_Write4bits(unsigned char data, unsigned char control);
+void LCD4bit_Cmd(unsigned char cmd);
+void LCD4bit_Data(const char data[]);
+
+int main()
+{
+
+	LCD_Init();
+
+	LCD4bit_Cmd(1);
+	LCD4bit_Cmd(0x80);
+	delay_ms(500);
+	
+	LCD4bit_Data("msb");
+}
+
+void LCD_Init(void)
+{
+	SYSCTL->RCGCGPIO |=1UL<<1;
+	GPIOB->DIR |= 0xFF;
+	GPIOB->DEN |= 0xFF;
+	
+	LCD4bit_Cmd(0x28); // 4-bit mode, 2 lines, 5x7 fonts
+	LCD4bit_Cmd(0x06); // move cursor right
+	LCD4bit_Cmd(0x01); // clear screen
+	LCD4bit_Cmd(0x0F); // turn display on
+}
+void LCD_Write4bits(unsigned char data, unsigned char control)
+{
+	data &= 0xF0;	//0x20
+	control &= 0x0F;	// 0x00
+	LCD->DATA = data | control;
+	LCD->DATA = data | control |EN;
+	delay_us(0);
+	LCD->DATA = data;
+}
+
+void LCD4bit_Cmd(unsigned char cmd)
+{
+	LCD_Write4bits(cmd & 0xF0, 0); //0x20
+	LCD_Write4bits(cmd << 4, 0);	//0x80
+	if (cmd<4){delay_ms(2);} else{delay_us(40);}
+}
+
+void LCD4bit_Data(const char data[])
+{	for (int itr=0; itr<strlen(data) ;itr++)
+	{
+	LCD_Write4bits(data[itr] & 0xF0, RS);
+	LCD_Write4bits(data[itr] <<4, RS);
+	delay_us(40);}
+}
+
+void delay_ms(int n)
+{
+	for(int i=0; i<n; i++)
+		for(int j=0; j<3180; j++){}
+}
+
+void delay_us(int n)
+{
+	for(int i=0; i<n; i++)
+		for(int j=0; j<3; j++){}
+}

@@ -1,0 +1,65 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 THUMB
+    2 00000000                 AREA             DATA, READONLY,ALIGN=2
+    3 00000000         ;-----------------------------------------
+    4 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+    5 00000000                 EXPORT           Number
+    6 00000000         
+    7 00000000         Number
+    8 00000000 F04F 0079       MOV              R0,#121
+    9 00000004 6000            STR              R0,[R0]
+   10 00000006 4770            BX               LR
+   11 00000008                 ALIGN
+   12 00000008                 END
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=.\objects\function.d -o.\objects\function.o -I"C:\Users\Israel\
+Documents\CORTEX-M.COM\More ASSEMBLY\ExportToC\RTE" -IC:\Keil_v5\V518a\ARM\PACK
+\ARM\CMSIS\4.5.0\CMSIS\Include -IC:\Keil_v5\V518a\ARM\PACK\Keil\TM4C_DFP\1.1.0\
+Device\Include\TM4C123 --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSI
+ON SETA 518" --predefine="_RTE_ SETA 1" --predefine="TM4C1230H6PM SETA 1" --lis
+t=.\listings\function.lst function.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+DATA 00000000
+
+Symbol: DATA
+   Definitions
+      At line 2 in file function.s
+   Uses
+      None
+Comment: DATA unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 4 in file function.s
+   Uses
+      None
+Comment: .text unused
+Number 00000000
+
+Symbol: Number
+   Definitions
+      At line 7 in file function.s
+   Uses
+      At line 5 in file function.s
+Comment: Number used once
+2 symbols
+338 symbols in table

@@ -1,0 +1,111 @@
+SYSCTL_RCGCGPIO_R  EQU   0x400FE608
+GPIO_PORTF_DATA_R  EQU 0x400253FC
+GPIO_PORTF_DIR_R   EQU 0x40025400
+GPIO_PORTF_DEN_R   EQU 0x4002551C
+
+GPIO_PORTF_PUR_R   EQU 	0x40025510
+GPIO_PORTF_LOCK_R  EQU  0x40025520
+GPIO_PORTF_CR_R	   EQU	0x40025524
+GPIO_LOCK_KEY	   EQU  0x4C4F434B
+;switch1 = PF4   
+;switch2 = PF0
+RED  EQU 0x02 ; 0b  0000 0010
+BLUE EQU 0x04 ; 0B   0000  0100
+GREEN EQU 0x08 ; 0b  0000  1000
+
+SEC_DIV_FIVE  EQU 1066666 ; 1second divided by 5
+	
+	
+	
+				AREA  |.text|, CODE, READONLY, ALIGN=2
+				THUMB
+				EXPORT Main
+Main
+    BL	GPIO_init
+loop
+    LDR R0, = SEC_DIV_FIVE
+	BL  delay
+	BL  Input
+	CMP R0,#0x01
+	BEQ SWITCH1_ON
+	CMP R0,#0x10
+	BEQ SWITCH2_ON
+	CMP R0,#0x00
+	BEQ BOTH_SWITCHES
+	BL Output
+	B  loop
+	
+
+SWITCH1_ON
+  MOV R0,#GREEN
+  BL  Output
+  B   loop
+  
+SWITCH2_ON
+  MOV R0,#BLUE
+  BL Output
+  B loop
+  
+BOTH_SWITCHES
+  MOV R0,#(RED+BLUE+GREEN)
+  BL Output
+  B loop
+  
+  
+Output
+   LDR R1,= GPIO_PORTF_DATA_R
+   STR R0,[R1]  
+    BX LR   
+
+Input
+  LDR R1,=GPIO_PORTF_DATA_R
+  LDR R0,[R1]
+  AND R0,R0,#0x11 ; 0B 0001 0001  
+  BX LR
+  
+
+
+
+	
+delay
+    SUBS  R0,R0, #1
+	BNE   delay
+	BX    LR
+
+
+GPIO_init
+
+     LDR R1, =SYSCTL_RCGCGPIO_R
+	 LDR R0,[R1]
+	 ORR R0,R0,#0x20
+	 STR R0,[R1]
+	 
+	 LDR R1,=GPIO_PORTF_LOCK_R
+	 LDR R0,=GPIO_LOCK_KEY 
+	 STR R0,[R1]
+	 
+	 LDR R1,=GPIO_PORTF_CR_R
+	 MOV R0,#0xFF  
+	 STR R0,[R1]
+	 
+	 LDR R1,=GPIO_PORTF_DIR_R 
+	 MOV R0,#0x0E   ; 0b 0000 1110
+	 STR R0,[R1]
+	 
+	 LDR R1,=GPIO_PORTF_PUR_R
+	 MOV R0,#0x10
+	 STR R0,[R1]
+	 
+	 LDR R1,=GPIO_PORTF_DEN_R
+	 MOV R0,#0x1F   ;0B 0001 1111     
+	 STR R0,[R1]
+	 
+	 
+	 BX LR
+	 
+	 ALIGN
+	 END
+	 
+	
+	 
+	

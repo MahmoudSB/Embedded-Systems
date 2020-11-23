@@ -1,0 +1,92 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             |.text|, CODE, READONLY, ALIGN=
+2
+    2 00000000                 THUMB
+    3 00000000                 EXPORT           SFC
+    4 00000000                 IMPORT           GPIO_READ
+    5 00000000                 IMPORT           main
+    6 00000000                 IMPORT           GPIO_WRITE
+    7 00000000         SFC
+    8 00000000 4803            LDR              R0, =GPIO_READ
+    9 00000002 4780            BLX              R0
+   10 00000004         
+   11 00000004 4803            LDR              R0, =main
+   12 00000006 4780            BLX              R0
+   13 00000008         
+   14 00000008 4803            LDR              R0, =GPIO_WRITE
+   15 0000000A 4780            BLX              R0
+   16 0000000C         
+   17 0000000C E7FE            B                SFC
+   18 0000000E         
+   19 0000000E 00 00           ALIGN
+   20 00000010                 END
+              00000000 
+              00000000 
+              00000000 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
+interwork --depend=.\objects\sfc.d -o.\objects\sfc.o -I.\RTE\_TIVAC -IC:\Users\
+mahmo\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include -IC:\Users\mah
+mo\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --predefi
+ne="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 529" --predefine="_RTE_ 
+SETA 1" --predefine="TM4C123GH6PM SETA 1" --list=.\listings\sfc.lst SFC.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 1 in file SFC.s
+   Uses
+      None
+Comment: .text unused
+SFC 00000000
+
+Symbol: SFC
+   Definitions
+      At line 7 in file SFC.s
+   Uses
+      At line 3 in file SFC.s
+      At line 17 in file SFC.s
+
+2 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+GPIO_READ 00000000
+
+Symbol: GPIO_READ
+   Definitions
+      At line 4 in file SFC.s
+   Uses
+      At line 8 in file SFC.s
+Comment: GPIO_READ used once
+GPIO_WRITE 00000000
+
+Symbol: GPIO_WRITE
+   Definitions
+      At line 6 in file SFC.s
+   Uses
+      At line 14 in file SFC.s
+Comment: GPIO_WRITE used once
+main 00000000
+
+Symbol: main
+   Definitions
+      At line 5 in file SFC.s
+   Uses
+      At line 11 in file SFC.s
+Comment: main used once
+3 symbols
+342 symbols in table

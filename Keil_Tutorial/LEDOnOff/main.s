@@ -1,0 +1,99 @@
+SYSCTL_RCGCGPIO_R	EQU 0x400FE608
+GPIO_PORTF_DIR_R	EQU 0x40025400
+GPIO_PORTF_DEN_R	EQU 0x4002551C
+GPIOF_PORTF_DATA_R	EQU 0x400253FC
+
+GPIO_PORTF_PUR_R	EQU 0x40025510
+GPIO_PORTF_LOCK_R	EQU 0x40025520
+GPIO_PORTF_CR_R		EQU 0x40025524
+GPIO_LOCK_KEY		EQU 0x4C4F434B
+
+RED 				EQU 0x02 	; 0b 0000 0010
+BLUE				EQU 0x04
+GREEN				EQU 0x08
+SEC_DIV_FIVE		EQU 1066666 ; 1 SECOND DEVIDED BY 5
+
+;0x400253EF, 0x400FF612  memory to map in debug session in simulation
+;0x4C4F434A, 0x4C4F434C  memory to map in debug session in simulation
+
+				AREA	|.text|,CODE,READONLY,ALIGN=2
+				THUMB
+				EXPORT main
+
+main
+	BL	GPIOF_Init
+		
+loop
+	LDR R0,=SEC_DIV_FIVE
+	BL  delay
+	BL  input
+	CMP R0,#0x10
+	BEQ switch1_on
+	CMP R0,#0x01
+	BEQ switch2_on
+	CMP R0,#0x00
+	BEQ switch12_on
+	BL  output
+	B   loop
+
+switch1_on
+	ORR R0,R0,#RED
+	BL  output
+	B   loop
+	
+switch2_on
+	ORR R0,R0,#GREEN
+	BL  output
+	B   loop
+	
+switch12_on
+	ORR R0,R0,#(BLUE+GREEN+RED)
+	BL  output
+	B   loop
+	
+output
+	LDR R1,=GPIOF_PORTF_DATA_R
+	STR R0,[R1]
+	BX  LR
+
+input
+	LDR R1,=GPIOF_PORTF_DATA_R
+	LDR R0,[R1]
+	AND R0,R0,#0x11
+	BX  LR
+
+delay
+	SUBS R0,R0, #1
+	BNE  delay
+	BX   LR
+
+GPIOF_Init
+	LDR R1,=SYSCTL_RCGCGPIO_R
+	LDR R0,[R1]
+	ORR R0,R0,#0x20
+	STR R0,[R1]
+
+	LDR R1,=GPIO_PORTF_LOCK_R
+	LDR R0,=GPIO_LOCK_KEY
+	STR R0,[R1]
+
+	LDR R1,=GPIO_PORTF_CR_R
+	MOV R0,#0XFF
+	STR R0,[R1]
+
+	LDR R1,=GPIO_PORTF_DIR_R
+	MOV R0,#0x0E
+	STR R0,[R1]
+
+	LDR R1,=GPIO_PORTF_PUR_R
+	MOV R0,#0x10
+	STR R0,[R1]
+
+	LDR R1,=GPIO_PORTF_DEN_R
+	MOV R0,#0x1F
+	STR R0,[R1]
+
+	BX  LR
+
+	ALIGN
+	END

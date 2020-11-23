@@ -1,0 +1,11 @@
+.\main.o: main.c
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123\TM4C123.h
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123\TM4C1230H6PM.h
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cm4.h
+.\main.o: C:\Keil_v5\V518a\ARM\ARMCC\Bin\..\include\stdint.h
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmInstr.h
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\cmsis_armcc.h
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmFunc.h
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\ARM\CMSIS\4.5.0\CMSIS\Include\core_cmSimd.h
+.\main.o: C:\Keil_v5\V518a\ARM\PACK\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123\system_TM4C123.h
+.\main.o: delay.h

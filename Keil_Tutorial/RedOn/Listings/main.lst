@@ -1,0 +1,177 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         
+    2 00000000         ; SW1:PF4, SW2:PF0, LEDR:PF1, LEDG:PF2, LEDB:PF3
+    3 00000000         ;1. Activate clock of the port in RCGCGPIO registers (Pa
+                       ge 313)
+    4 00000000         ;2. Set direction of pin in DIR register (Page 585)
+    5 00000000         ;3. Enable pin in DEN register (Page 604)
+    6 00000000         ;4. Writing/Read data : GPIODATA register (584)
+    7 00000000         ; “Commit Control” on page 578
+    8 00000000         
+    9 00000000 400FE608 
+                       SYSCTL_RCGCGPIO_R
+                               EQU              0x400FE608
+   10 00000000 40025400 
+                       GPIO_PORTF_DIR_R
+                               EQU              0x40025400
+   11 00000000 4002551C 
+                       GPIO_PORTF_DEN_R
+                               EQU              0x4002551C
+   12 00000000 400253FC 
+                       GPIOF_PORTF_DATA_R
+                               EQU              0x400253fc
+   13 00000000         
+   14 00000000         ;0x40025000, 0x400FF610  memory to map in debug mode
+   15 00000000         
+   16 00000000                 AREA             |.text|,CODE,READONLY,ALIGN=2
+   17 00000000                 THUMB
+   18 00000000                 EXPORT           main
+   19 00000000         
+   20 00000000         main
+   21 00000000 F000 F803       BL               GPIOF_Init
+   22 00000004         
+   23 00000004 F000 F80F 
+                       loop    BL               LIGHT_ON
+   24 00000008 E7FC            B                loop
+   25 0000000A         
+   26 0000000A         GPIOF_Init
+   27 0000000A 4909            LDR              R1,=SYSCTL_RCGCGPIO_R
+   28 0000000C 6808            LDR              R0,[R1]
+   29 0000000E F040 0020       ORR              R0,R0, #0x20 ; 0b 0000 0010 : G
+                                                            PIO F clock enabled
+                                                            
+   30 00000012 6008            STR              R0,[R1]
+   31 00000014         
+   32 00000014 4907            LDR              R1,=GPIO_PORTF_DIR_R
+   33 00000016 F04F 0002       MOV              R0,#0x02    ; 0b 0000 0010 : GP
+                                                            IO F, pin 2(LEDR): 
+                                                            is an output. the r
+                                                            est are input
+   34 0000001A 6008            STR              R0,[R1]
+   35 0000001C         
+   36 0000001C 4906            LDR              R1,=GPIO_PORTF_DEN_R
+   37 0000001E F04F 0002       MOV              R0,#0X02    ; 0b 0000 0010 : GP
+                                                            IO F, pin 2(LEDR): 
+                                                            digital functions e
+                                                            nabbled. the rest a
+                                                            re disabled
+   38 00000022 6008            STR              R0,[R1]
+   39 00000024 4770            BX               LR
+   40 00000026         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   41 00000026         LIGHT_ON
+   42 00000026 4905            LDR              R1,=GPIOF_PORTF_DATA_R
+   43 00000028 F04F 000F       MOV              R0,#0xF
+   44 0000002C 6008            STR              R0,[R1]
+   45 0000002E 4770            BX               LR
+   46 00000030         
+   47 00000030                 ALIGN
+   48 00000030                 END
+              400FE608 
+              40025400 
+              4002551C 
+              400253FC 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
+interwork --depend=.\objects\main.d -o.\objects\main.o -I.\RTE\_Target_1 -IC:\U
+sers\mahmo\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include -IC:\User
+s\mahmo\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --pr
+edefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 529" --predefine="_
+RTE_ SETA 1" --predefine="TM4C123GH6PM SETA 1" --list=.\listings\main.lst main.
+s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 16 in file main.s
+   Uses
+      None
+Comment: .text unused
+GPIOF_Init 0000000A
+
+Symbol: GPIOF_Init
+   Definitions
+      At line 26 in file main.s
+   Uses
+      At line 21 in file main.s
+Comment: GPIOF_Init used once
+LIGHT_ON 00000026
+
+Symbol: LIGHT_ON
+   Definitions
+      At line 41 in file main.s
+   Uses
+      At line 23 in file main.s
+Comment: LIGHT_ON used once
+loop 00000004
+
+Symbol: loop
+   Definitions
+      At line 23 in file main.s
+   Uses
+      At line 24 in file main.s
+Comment: loop used once
+main 00000000
+
+Symbol: main
+   Definitions
+      At line 20 in file main.s
+   Uses
+      At line 18 in file main.s
+Comment: main used once
+5 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+GPIOF_PORTF_DATA_R 400253FC
+
+Symbol: GPIOF_PORTF_DATA_R
+   Definitions
+      At line 12 in file main.s
+   Uses
+      At line 42 in file main.s
+Comment: GPIOF_PORTF_DATA_R used once
+GPIO_PORTF_DEN_R 4002551C
+
+Symbol: GPIO_PORTF_DEN_R
+   Definitions
+      At line 11 in file main.s
+   Uses
+      At line 36 in file main.s
+Comment: GPIO_PORTF_DEN_R used once
+GPIO_PORTF_DIR_R 40025400
+
+Symbol: GPIO_PORTF_DIR_R
+   Definitions
+      At line 10 in file main.s
+   Uses
+      At line 32 in file main.s
+Comment: GPIO_PORTF_DIR_R used once
+SYSCTL_RCGCGPIO_R 400FE608
+
+Symbol: SYSCTL_RCGCGPIO_R
+   Definitions
+      At line 9 in file main.s
+   Uses
+      At line 27 in file main.s
+Comment: SYSCTL_RCGCGPIO_R used once
+4 symbols
+346 symbols in table

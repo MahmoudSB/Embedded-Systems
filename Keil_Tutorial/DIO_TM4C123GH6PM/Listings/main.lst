@@ -1,0 +1,729 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000         ; SW1:PF4, SW2:PF0, LEDR:PF1, LEDG:PF2, LEDB:PF3
+    2 00000000         ;1. Activate clock of the port in RCGCGPIO registers (Pa
+                       ge 313)
+    3 00000000         ;2. Set direction of pin in DIR register (Page 585)
+    4 00000000         ;3. Enable pin in DEN register (Page 604)
+    5 00000000         ;4. Writing/Read data : GPIODATA register (584)
+    6 00000000         ; “Commit Control” on page 578
+    7 00000000         
+    8 00000000 400FE608 
+                       SYSCTL_RCGCGPIO_R
+                               EQU              0x400FE608
+    9 00000000 40025400 
+                       GPIO_PORTF_DIR_R
+                               EQU              0x40025400
+   10 00000000 4002551C 
+                       GPIO_PORTF_DEN_R
+                               EQU              0x4002551C
+   11 00000000 400253FC 
+                       GPIOF_PORTF_DATA_R
+                               EQU              0x400253FC
+   12 00000000         
+   13 00000000 40025510 
+                       GPIO_PORTF_PUR_R
+                               EQU              0x40025510
+   14 00000000 40025520 
+                       GPIO_PORTF_LOCK_R
+                               EQU              0x40025520
+   15 00000000 40025524 
+                       GPIO_PORTF_CR_R
+                               EQU              0x40025524
+   16 00000000 4C4F434B 
+                       GPIO_LOCK_KEY
+                               EQU              0x4C4F434B
+   17 00000000         
+   18 00000000 00000002 
+                       RED     EQU              0x02
+   19 00000000 00000004 
+                       BLUE    EQU              0x04
+   20 00000000 00000008 
+                       GREEN   EQU              0x08
+   21 00000000 000014D5 
+                       Cycles_per_ms
+                               EQU              5333        ; How many cycles i
+                                                            s program executed 
+                                                            per milisecond?
+   22 00000000         
+   23 00000000         ;0x400253EF, 0x400FF612  memory to map in debug session 
+                       in simulation
+   24 00000000         ;0x4C4F434A, 0x4C4F434C  memory to map in debug session 
+                       in simulation
+   25 00000000         
+   26 00000000                 AREA             |.text|,CODE,READONLY,ALIGN=2
+   27 00000000                 THUMB
+   28 00000000                 EXPORT           main
+   29 00000000         
+   30 00000000         main
+   31 00000000 F000 F82E       BL               GPIOF_Ini
+   32 00000004 F000 F845       BL               Ini_Blink
+   33 00000008         
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   34 00000008 F241 42D5 
+                       loop    LDR              R2, =Cycles_per_ms ; Delay in m
+                                                            iliseconds
+   35 0000000C F000 F825       BL               Wait
+   36 00000010 F000 F805       BL               GPIORead
+   37 00000014 F000 F809       BL               Process
+   38 00000018 F000 F804       BL               GPIOWrite
+   39 0000001C E7F4            B                loop
+   40 0000001E         
+   41 0000001E 4942    GPIORead
+                               LDR              R1, =GPIOF_PORTF_DATA_R
+   42 00000020 6808            LDR              R0, [R1]
+   43 00000022 4770            BX               LR
+   44 00000024         
+   45 00000024 4940    GPIOWrite
+                               LDR              R1, =GPIOF_PORTF_DATA_R
+   46 00000026 6008            STR              R0, [R1]
+   47 00000028 4770            BX               LR
+   48 0000002A         
+   49 0000002A F000 00F1 
+                       Process AND              R0, R0, #0xF1
+   50 0000002E 4603    SW1     MOV              R3, R0
+   51 00000030 F003 0311       AND              R3, R3, #0x11
+   52 00000034 2B01            CMP              R3, #0x01
+   53 00000036 D101            BNE              End_SW1
+   54 00000038 F040 0002 
+                       RED_on  ORR              R0,#RED
+   55 0000003C         End_SW1
+   56 0000003C 4603    SW2     MOV              R3, R0
+   57 0000003E F003 0311       AND              R3, R3, #0x11
+   58 00000042 2B10            CMP              R3, #0x10
+   59 00000044 D101            BNE              End_SW2
+   60 00000046 F040 0004 
+                       BLUE_on ORR              R0,#BLUE
+   61 0000004A         End_SW2
+   62 0000004A 4603    SW1e2   MOV              R3, R0
+   63 0000004C F003 0311       AND              R3, R3, #0x11
+   64 00000050 2B00            CMP              R3, #0x00
+   65 00000052 D101            BNE              End_SW1e2
+   66 00000054 F040 0008 
+                       GREEN_on
+                               ORR              R0,#GREEN
+   67 00000058         End_SW1e2
+   68 00000058 4770            BX               LR
+   69 0000005A         
+   70 0000005A 1E52    Wait    SUBS             R2, R2, #1
+   71 0000005C D1FD            BNE              Wait
+   72 0000005E 4770            BX               LR
+   73 00000060         
+   74 00000060 4932    GPIOF_Ini
+                               LDR              R1, =SYSCTL_RCGCGPIO_R
+   75 00000062 6808            LDR              R0, [R1]
+   76 00000064 F040 0020       ORR              R0, R0, #0x20
+   77 00000068 6008            STR              R0, [R1]
+   78 0000006A         
+   79 0000006A 4931            LDR              R1, =GPIO_PORTF_LOCK_R
+   80 0000006C 4831            LDR              R0, =GPIO_LOCK_KEY
+   81 0000006E 6008            STR              R0, [R1]
+   82 00000070         
+
+
+
+ARM Macro Assembler    Page 3 
+
+
+   83 00000070 4931            LDR              R1, =GPIO_PORTF_CR_R
+   84 00000072 F04F 00FF       MOV              R0, #0XFF
+   85 00000076 6008            STR              R0, [R1]
+   86 00000078         
+   87 00000078 4930            LDR              R1, =GPIO_PORTF_DIR_R
+   88 0000007A F04F 000E       MOV              R0, #0x0E
+   89 0000007E 6008            STR              R0, [R1]
+   90 00000080         
+   91 00000080 492F            LDR              R1, =GPIO_PORTF_PUR_R
+   92 00000082 F04F 0010       MOV              R0, #0x10
+   93 00000086 6008            STR              R0, [R1]
+   94 00000088         
+   95 00000088 492E            LDR              R1, =GPIO_PORTF_DEN_R
+   96 0000008A F04F 001F       MOV              R0, #0x1F
+   97 0000008E 6008            STR              R0, [R1]
+   98 00000090 4770            BX               LR
+   99 00000092         
+  100 00000092 F04F 0601 
+                       Ini_Blink
+                               MOV              R6, #1
+  101 00000096 F04F 0300 
+                       R_ON    MOV              R3, #0x0
+  102 0000009A F043 0302 
+                       Color_R ORR              R3, #RED
+  103 0000009E F043 0320 
+                       R_Repeat
+                               ORR              R3, #0x00000020
+  104 000000A2 F443 0315 
+                       R_Dur   ORR              R3, #0x00950000
+  105 000000A6 4D28            LDR              R5, =G_ON
+  106 000000A8 F000 F81B       BL               Blink
+  107 000000AC         
+  108 000000AC F04F 0300 
+                       G_ON    MOV              R3, #0x0
+  109 000000B0 F043 0308 
+                       Color_G ORR              R3, #GREEN
+  110 000000B4 F043 0320 
+                       G_Repeat
+                               ORR              R3, #0x00000020
+  111 000000B8 F443 0315 
+                       G_Dur   ORR              R3, #0x00950000
+  112 000000BC 4D23            LDR              R5, =B_ON
+  113 000000BE F000 F810       BL               Blink
+  114 000000C2         
+  115 000000C2 F04F 0300 
+                       B_ON    MOV              R3, #0x0
+  116 000000C6 F043 0304 
+                       Color_B ORR              R3, #BLUE
+  117 000000CA F043 0320 
+                       B_Repeat
+                               ORR              R3, #0x00000020
+  118 000000CE F443 0315 
+                       B_Dur   ORR              R3, #0x00950000
+  119 000000D2 4D1F            LDR              R5, =repeat_b
+  120 000000D4 F000 F805       BL               Blink
+  121 000000D8         
+  122 000000D8 F1A6 0601 
+                       repeat_b
+                               SUB              R6, R6, #1
+
+
+
+ARM Macro Assembler    Page 4 
+
+
+  123 000000DC 2E00            CMP              R6, #0
+  124 000000DE D1DA            BNE              R_ON
+  125 000000E0         
+  126 000000E0 E792            B                loop
+  127 000000E2         
+  128 000000E2         Blink
+  129 000000E2 F003 000F 
+                       color_ON
+                               AND              R0, R3, #0x0000000F
+  130 000000E6 4910            LDR              R1, =GPIOF_PORTF_DATA_R
+  131 000000E8 6008            STR              R0, [R1]
+  132 000000EA         
+  133 000000EA EA4F 4213 
+                       Delay_ON
+                               LSR              R2, R3, #16
+  134 000000EE         ;AND R2, R2, #0x0000FFFF
+  135 000000EE F241 44D5       MOV              R4, #Cycles_per_ms
+  136 000000F2 FB04 F202       MUL              R2, R4, R2
+  137 000000F6 F7FF FFB0       BL               Wait
+  138 000000FA         
+  139 000000FA F04F 0000 
+                       LED_OFF MOV              R0, #0x0
+  140 000000FE 490A            LDR              R1, =GPIOF_PORTF_DATA_R
+  141 00000100 6008            STR              R0, [R1]
+  142 00000102 EA4F 4213 
+                       Delay_OFF
+                               LSR              R2, R3, #16
+  143 00000106         ;AND R2, R2, #0x0000FFFF
+  144 00000106 F241 44D5       MOV              R4, #Cycles_per_ms
+  145 0000010A FB04 F202       MUL              R2, R4, R2
+  146 0000010E F7FF FFA4       BL               Wait
+  147 00000112         
+  148 00000112 F003 04F0 
+                       repeat_a
+                               AND              R4, R3, #0x000000F0
+  149 00000116 F1A4 0410       SUB              R4, R4, #0x10
+  150 0000011A F023 03F0       AND              R3, R3, #0xFFFFFF0F
+  151 0000011E EA43 0304       ORR              R3, R3, R4
+  152 00000122 2C00            CMP              R4, #0x0
+  153 00000124 D1DD            BNE              Blink
+  154 00000126         
+  155 00000126 4728            BX               R5
+  156 00000128         
+  157 00000128         
+  158 00000128                 ALIGN
+  159 00000128                 END
+              400253FC 
+              400FE608 
+              40025520 
+              4C4F434B 
+              40025524 
+              40025400 
+              40025510 
+              4002551C 
+              00000000 
+              00000000 
+              00000000 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
+interwork --depend=.\objects\main.d -o.\objects\main.o -I.\RTE\_Target_1 -IC:\U
+
+
+
+ARM Macro Assembler    Page 5 
+
+
+sers\mahmo\AppData\Local\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include -IC:\User
+s\mahmo\AppData\Local\Arm\Packs\Keil\TM4C_DFP\1.1.0\Device\Include\TM4C123 --pr
+edefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 529" --predefine="_
+RTE_ SETA 1" --predefine="TM4C123GH6PM SETA 1" --list=.\listings\main.lst Main.
+s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+.text 00000000
+
+Symbol: .text
+   Definitions
+      At line 26 in file Main.s
+   Uses
+      None
+Comment: .text unused
+BLUE_on 00000046
+
+Symbol: BLUE_on
+   Definitions
+      At line 60 in file Main.s
+   Uses
+      None
+Comment: BLUE_on unused
+B_Dur 000000CE
+
+Symbol: B_Dur
+   Definitions
+      At line 118 in file Main.s
+   Uses
+      None
+Comment: B_Dur unused
+B_ON 000000C2
+
+Symbol: B_ON
+   Definitions
+      At line 115 in file Main.s
+   Uses
+      At line 112 in file Main.s
+Comment: B_ON used once
+B_Repeat 000000CA
+
+Symbol: B_Repeat
+   Definitions
+      At line 117 in file Main.s
+   Uses
+      None
+Comment: B_Repeat unused
+Blink 000000E2
+
+Symbol: Blink
+   Definitions
+      At line 128 in file Main.s
+   Uses
+      At line 106 in file Main.s
+      At line 113 in file Main.s
+      At line 120 in file Main.s
+      At line 153 in file Main.s
+
+Color_B 000000C6
+
+Symbol: Color_B
+   Definitions
+      At line 116 in file Main.s
+   Uses
+      None
+Comment: Color_B unused
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Relocatable symbols
+
+Color_G 000000B0
+
+Symbol: Color_G
+   Definitions
+      At line 109 in file Main.s
+   Uses
+      None
+Comment: Color_G unused
+Color_R 0000009A
+
+Symbol: Color_R
+   Definitions
+      At line 102 in file Main.s
+   Uses
+      None
+Comment: Color_R unused
+Delay_OFF 00000102
+
+Symbol: Delay_OFF
+   Definitions
+      At line 142 in file Main.s
+   Uses
+      None
+Comment: Delay_OFF unused
+Delay_ON 000000EA
+
+Symbol: Delay_ON
+   Definitions
+      At line 133 in file Main.s
+   Uses
+      None
+Comment: Delay_ON unused
+End_SW1 0000003C
+
+Symbol: End_SW1
+   Definitions
+      At line 55 in file Main.s
+   Uses
+      At line 53 in file Main.s
+Comment: End_SW1 used once
+End_SW1e2 00000058
+
+Symbol: End_SW1e2
+   Definitions
+      At line 67 in file Main.s
+   Uses
+      At line 65 in file Main.s
+Comment: End_SW1e2 used once
+End_SW2 0000004A
+
+Symbol: End_SW2
+   Definitions
+      At line 61 in file Main.s
+   Uses
+      At line 59 in file Main.s
+Comment: End_SW2 used once
+GPIOF_Ini 00000060
+
+Symbol: GPIOF_Ini
+
+
+
+ARM Macro Assembler    Page 3 Alphabetic symbol ordering
+Relocatable symbols
+
+   Definitions
+      At line 74 in file Main.s
+   Uses
+      At line 31 in file Main.s
+Comment: GPIOF_Ini used once
+GPIORead 0000001E
+
+Symbol: GPIORead
+   Definitions
+      At line 41 in file Main.s
+   Uses
+      At line 36 in file Main.s
+Comment: GPIORead used once
+GPIOWrite 00000024
+
+Symbol: GPIOWrite
+   Definitions
+      At line 45 in file Main.s
+   Uses
+      At line 38 in file Main.s
+Comment: GPIOWrite used once
+GREEN_on 00000054
+
+Symbol: GREEN_on
+   Definitions
+      At line 66 in file Main.s
+   Uses
+      None
+Comment: GREEN_on unused
+G_Dur 000000B8
+
+Symbol: G_Dur
+   Definitions
+      At line 111 in file Main.s
+   Uses
+      None
+Comment: G_Dur unused
+G_ON 000000AC
+
+Symbol: G_ON
+   Definitions
+      At line 108 in file Main.s
+   Uses
+      At line 105 in file Main.s
+Comment: G_ON used once
+G_Repeat 000000B4
+
+Symbol: G_Repeat
+   Definitions
+      At line 110 in file Main.s
+   Uses
+      None
+Comment: G_Repeat unused
+Ini_Blink 00000092
+
+Symbol: Ini_Blink
+   Definitions
+      At line 100 in file Main.s
+   Uses
+
+
+
+ARM Macro Assembler    Page 4 Alphabetic symbol ordering
+Relocatable symbols
+
+      At line 32 in file Main.s
+Comment: Ini_Blink used once
+LED_OFF 000000FA
+
+Symbol: LED_OFF
+   Definitions
+      At line 139 in file Main.s
+   Uses
+      None
+Comment: LED_OFF unused
+Process 0000002A
+
+Symbol: Process
+   Definitions
+      At line 49 in file Main.s
+   Uses
+      At line 37 in file Main.s
+Comment: Process used once
+RED_on 00000038
+
+Symbol: RED_on
+   Definitions
+      At line 54 in file Main.s
+   Uses
+      None
+Comment: RED_on unused
+R_Dur 000000A2
+
+Symbol: R_Dur
+   Definitions
+      At line 104 in file Main.s
+   Uses
+      None
+Comment: R_Dur unused
+R_ON 00000096
+
+Symbol: R_ON
+   Definitions
+      At line 101 in file Main.s
+   Uses
+      At line 124 in file Main.s
+Comment: R_ON used once
+R_Repeat 0000009E
+
+Symbol: R_Repeat
+   Definitions
+      At line 103 in file Main.s
+   Uses
+      None
+Comment: R_Repeat unused
+SW1 0000002E
+
+Symbol: SW1
+   Definitions
+      At line 50 in file Main.s
+   Uses
+      None
+Comment: SW1 unused
+SW1e2 0000004A
+
+
+
+ARM Macro Assembler    Page 5 Alphabetic symbol ordering
+Relocatable symbols
+
+
+Symbol: SW1e2
+   Definitions
+      At line 62 in file Main.s
+   Uses
+      None
+Comment: SW1e2 unused
+SW2 0000003C
+
+Symbol: SW2
+   Definitions
+      At line 56 in file Main.s
+   Uses
+      None
+Comment: SW2 unused
+Wait 0000005A
+
+Symbol: Wait
+   Definitions
+      At line 70 in file Main.s
+   Uses
+      At line 35 in file Main.s
+      At line 71 in file Main.s
+      At line 137 in file Main.s
+      At line 146 in file Main.s
+
+color_ON 000000E2
+
+Symbol: color_ON
+   Definitions
+      At line 129 in file Main.s
+   Uses
+      None
+Comment: color_ON unused
+loop 00000008
+
+Symbol: loop
+   Definitions
+      At line 34 in file Main.s
+   Uses
+      At line 39 in file Main.s
+      At line 126 in file Main.s
+
+main 00000000
+
+Symbol: main
+   Definitions
+      At line 30 in file Main.s
+   Uses
+      At line 28 in file Main.s
+Comment: main used once
+repeat_a 00000112
+
+Symbol: repeat_a
+   Definitions
+      At line 148 in file Main.s
+   Uses
+      None
+Comment: repeat_a unused
+
+
+
+ARM Macro Assembler    Page 6 Alphabetic symbol ordering
+Relocatable symbols
+
+repeat_b 000000D8
+
+Symbol: repeat_b
+   Definitions
+      At line 122 in file Main.s
+   Uses
+      At line 119 in file Main.s
+Comment: repeat_b used once
+37 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Absolute symbols
+
+BLUE 00000004
+
+Symbol: BLUE
+   Definitions
+      At line 19 in file Main.s
+   Uses
+      At line 60 in file Main.s
+      At line 116 in file Main.s
+
+Cycles_per_ms 000014D5
+
+Symbol: Cycles_per_ms
+   Definitions
+      At line 21 in file Main.s
+   Uses
+      At line 34 in file Main.s
+      At line 135 in file Main.s
+      At line 144 in file Main.s
+
+GPIOF_PORTF_DATA_R 400253FC
+
+Symbol: GPIOF_PORTF_DATA_R
+   Definitions
+      At line 11 in file Main.s
+   Uses
+      At line 41 in file Main.s
+      At line 45 in file Main.s
+      At line 130 in file Main.s
+      At line 140 in file Main.s
+
+GPIO_LOCK_KEY 4C4F434B
+
+Symbol: GPIO_LOCK_KEY
+   Definitions
+      At line 16 in file Main.s
+   Uses
+      At line 80 in file Main.s
+Comment: GPIO_LOCK_KEY used once
+GPIO_PORTF_CR_R 40025524
+
+Symbol: GPIO_PORTF_CR_R
+   Definitions
+      At line 15 in file Main.s
+   Uses
+      At line 83 in file Main.s
+Comment: GPIO_PORTF_CR_R used once
+GPIO_PORTF_DEN_R 4002551C
+
+Symbol: GPIO_PORTF_DEN_R
+   Definitions
+      At line 10 in file Main.s
+   Uses
+      At line 95 in file Main.s
+Comment: GPIO_PORTF_DEN_R used once
+GPIO_PORTF_DIR_R 40025400
+
+Symbol: GPIO_PORTF_DIR_R
+   Definitions
+      At line 9 in file Main.s
+
+
+
+ARM Macro Assembler    Page 2 Alphabetic symbol ordering
+Absolute symbols
+
+   Uses
+      At line 87 in file Main.s
+Comment: GPIO_PORTF_DIR_R used once
+GPIO_PORTF_LOCK_R 40025520
+
+Symbol: GPIO_PORTF_LOCK_R
+   Definitions
+      At line 14 in file Main.s
+   Uses
+      At line 79 in file Main.s
+Comment: GPIO_PORTF_LOCK_R used once
+GPIO_PORTF_PUR_R 40025510
+
+Symbol: GPIO_PORTF_PUR_R
+   Definitions
+      At line 13 in file Main.s
+   Uses
+      At line 91 in file Main.s
+Comment: GPIO_PORTF_PUR_R used once
+GREEN 00000008
+
+Symbol: GREEN
+   Definitions
+      At line 20 in file Main.s
+   Uses
+      At line 66 in file Main.s
+      At line 109 in file Main.s
+
+RED 00000002
+
+Symbol: RED
+   Definitions
+      At line 18 in file Main.s
+   Uses
+      At line 54 in file Main.s
+      At line 102 in file Main.s
+
+SYSCTL_RCGCGPIO_R 400FE608
+
+Symbol: SYSCTL_RCGCGPIO_R
+   Definitions
+      At line 8 in file Main.s
+   Uses
+      At line 74 in file Main.s
+Comment: SYSCTL_RCGCGPIO_R used once
+12 symbols
+386 symbols in table
